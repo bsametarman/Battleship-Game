@@ -1,0 +1,17 @@
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\bin\Debug\net6.0-windows\BattleshipGame.exe
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\bin\Debug\net6.0-windows\BattleshipGame.deps.json
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\bin\Debug\net6.0-windows\BattleshipGame.runtimeconfig.json
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\bin\Debug\net6.0-windows\BattleshipGame.dll
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\bin\Debug\net6.0-windows\BattleshipGame.pdb
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.csproj.AssemblyReference.cache
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.Form1.resources
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.csproj.GenerateResource.cache
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.AssemblyInfoInputs.cache
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.AssemblyInfo.cs
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.csproj.CoreCompileInputs.cache
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.dll
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\refint\BattleshipGame.dll
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.pdb
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\BattleshipGame.genruntimeconfig.cache
+C:\Users\bsame\Desktop\Projeler vs\C#\BattleshipGame\BattleshipGame\obj\Debug\net6.0-windows\ref\BattleshipGame.dll
