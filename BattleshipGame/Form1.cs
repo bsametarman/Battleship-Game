@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace BattleshipGame
 {
     public partial class Form1 : Form
@@ -6,8 +8,10 @@ namespace BattleshipGame
         {
             InitializeComponent();
         }
-        private Rectangle originalFromSize;
-        private Rectangle originalOpGrupBoxSize;
+
+        Random rnd = new Random();
+        int[,] opCoords = new int[19, 2];
+
         private void button8_Click(object sender, EventArgs e)
         {
 
@@ -15,28 +19,116 @@ namespace BattleshipGame
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            originalFromSize= new Rectangle(this.Location.X, this.Location.Y, this.Size.Width, this.Size.Height);
-            originalOpGrupBoxSize= new Rectangle(opButtonGroupBox.Location.X, opButtonGroupBox.Location.Y, opButtonGroupBox.Width, opButtonGroupBox.Height);
-        }
+            // Array for opponent positions, changes x coord to 15
+            for (int i = 0; i < opCoords.GetLength(0) - 1; i++)
+            {
+                opCoords[i, 0] = 15;
+            }
 
-        private void sizeControl(Rectangle r, Control c)
-        {
-            float xRatio = (float)(this.Width) / (float)(originalFromSize.Width);
-            float yRatio = (float)(this.Height) / (float)(originalFromSize.Height);
+            Button[,] opMap = new Button[7, 11];
+            
+            int top = 20;
+            int left = 20;
 
-            int X = (int)(r.Location.X * xRatio);
-            int Y = (int)(r.Location.Y * yRatio);
+            // Draw Buttons
+            for (int i = 0; i < opMap.GetUpperBound(0); i++)
+            {
+                for (int x = 0; x < opMap.GetUpperBound(1); x++)
+                {
+                    opMap[i, x] = new Button();
+                    opMap[i, x].Width = 60;
+                    opMap[i, x].Height = 60;
+                    Point p = new Point(left, top);
+                    opMap[i,x].Location = p;
+                    opMap[i, x].BackColor = Color.DeepSkyBlue;
+                    opMap[i, x].Text = $"[{i},{x}]";
+                    left += 60;
+                    this.Controls.Add(opMap[i, x]);
+                }
+                top += 60;
+                left = 20;
+            }
 
-            int Width = (int)(r.Width * xRatio);
-            int Height = (int)(r.Height * yRatio);
+            // Placing Ships
+            for (int i = 5; i >= 2; i--)
+            {
+                PlaceShips(ref opMap, i);
+            }
 
-            c.Location = new Point(X, Y);
-            c.Size = new Size(Width, Height);
+            // Op coords
+            for (int i = 0; i < opCoords.GetLength(0) - 2; i++)
+            {
+                Debug.WriteLine($"Coord --> [{opCoords[i, 0]},{opCoords[i, 1]}]");
+            }
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            sizeControl(originalOpGrupBoxSize, opButtonGroupBox);
+            
+        }
+
+        private int PickRandomCoord(out int yCoord, out bool isVertical)
+        {
+            isVertical = rnd.Next(0, 2) == 0 ? true : false;
+
+            int xCoord = rnd.Next(0, 6);
+            yCoord = rnd.Next(0, 10);
+
+            return xCoord;
+        }
+
+        private void PlaceShips(ref Button[,] map, int shipSize)
+        {
+            bool isVertical;
+            int yCoord;
+            int xCoord = PickRandomCoord(out yCoord, out isVertical);
+
+            Debug.WriteLine(xCoord + " " + yCoord + " " + isVertical);
+
+            
+            if (isVertical)
+            {
+                if(xCoord + (shipSize - 1) < map.GetLength(0) - 2)
+                {
+                    for (int x = 0; x < shipSize; x++)
+                    {
+                        map[xCoord + x, yCoord].BackColor = Color.Black;
+                        Add(ref opCoords, xCoord + x, yCoord);
+                    }
+                }
+                else
+                    PlaceShips(ref map, shipSize);
+            }
+            else
+            {
+                if(yCoord + (shipSize - 1) < map.GetLength(1) - 2)
+                {
+                    for (int x = 0; x < shipSize; x++)
+                    {
+                        map[xCoord, yCoord + x].BackColor = Color.Black;
+                        Add(ref opCoords, xCoord, yCoord + x);
+                    }
+                }
+                else
+                    PlaceShips(ref map, shipSize);
+            }
+            
+        }
+
+        // Add Coordinates to Array
+        private void Add(ref int[,] coords, int x, int y)
+        {
+            Debug.WriteLine(coords.GetLength(0));
+            for (int i = 0; i < coords.GetLength(0) - 2; i++)
+            {
+                Debug.WriteLine(coords[i, 0]);
+                if (coords[i,0] == 15)
+                {
+                    coords[i, 0] = x;
+                    coords[i, 1] = y;
+                    break;
+                }
+            }
         }
     }
 }
