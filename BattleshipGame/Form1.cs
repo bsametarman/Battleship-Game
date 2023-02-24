@@ -10,7 +10,9 @@ namespace BattleshipGame
         }
 
         Random rnd = new Random();
-        int[,] opCoords = new int[19, 2];
+
+        //Change here for different ship sizes
+        int[,] opCoords = new int[14, 2];
 
         private void button8_Click(object sender, EventArgs e)
         {
@@ -19,11 +21,15 @@ namespace BattleshipGame
 
         private void Form1_Load(object sender, EventArgs e)
         {
+
+            Debug.WriteLine("IMPORTANT -----> " + (opCoords.GetLength(0)));
+            
             // Array for opponent positions, changes x coord to 15
-            for (int i = 0; i < opCoords.GetLength(0) - 1; i++)
+            for (int i = 0; i < opCoords.GetLength(0); i++)
             {
                 opCoords[i, 0] = 15;
             }
+            Debug.WriteLine(opCoords[13, 0]);
 
             Button[,] opMap = new Button[7, 11];
             
@@ -56,7 +62,7 @@ namespace BattleshipGame
             }
 
             // Op coords
-            for (int i = 0; i < opCoords.GetLength(0) - 2; i++)
+            for (int i = 0; i < opCoords.GetLength(0); i++)
             {
                 Debug.WriteLine($"Coord --> [{opCoords[i, 0]},{opCoords[i, 1]}]");
             }
@@ -90,11 +96,16 @@ namespace BattleshipGame
             {
                 if(xCoord + (shipSize - 1) < map.GetLength(0) - 2)
                 {
-                    for (int x = 0; x < shipSize; x++)
+                    if (IsMatching(xCoord, yCoord, isVertical, shipSize) == false)
                     {
-                        map[xCoord + x, yCoord].BackColor = Color.Black;
-                        Add(ref opCoords, xCoord + x, yCoord);
+                        for (int x = 0; x < shipSize; x++)
+                        {
+                            map[xCoord + x, yCoord].BackColor = Color.Black;
+                            Add(ref opCoords, xCoord + x, yCoord);
+                        }
                     }
+                    else
+                        PlaceShips(ref map, shipSize);
                 }
                 else
                     PlaceShips(ref map, shipSize);
@@ -103,11 +114,16 @@ namespace BattleshipGame
             {
                 if(yCoord + (shipSize - 1) < map.GetLength(1) - 2)
                 {
-                    for (int x = 0; x < shipSize; x++)
+                    if (IsMatching(xCoord, yCoord, isVertical, shipSize) == false)
                     {
-                        map[xCoord, yCoord + x].BackColor = Color.Black;
-                        Add(ref opCoords, xCoord, yCoord + x);
+                        for (int x = 0; x < shipSize; x++)
+                        {
+                            map[xCoord, yCoord + x].BackColor = Color.Black;
+                            Add(ref opCoords, xCoord, yCoord + x);
+                        }
                     }
+                    else
+                        PlaceShips(ref map, shipSize);
                 }
                 else
                     PlaceShips(ref map, shipSize);
@@ -118,10 +134,8 @@ namespace BattleshipGame
         // Add Coordinates to Array
         private void Add(ref int[,] coords, int x, int y)
         {
-            Debug.WriteLine(coords.GetLength(0));
-            for (int i = 0; i < coords.GetLength(0) - 2; i++)
+            for (int i = 0; i < coords.GetLength(0); i++)
             {
-                Debug.WriteLine(coords[i, 0]);
                 if (coords[i,0] == 15)
                 {
                     coords[i, 0] = x;
@@ -129,6 +143,40 @@ namespace BattleshipGame
                     break;
                 }
             }
+        }
+
+        // Check if ships overlap
+        private bool IsMatching(int x, int y, bool isVertical, int shipSize)
+        {
+            if (isVertical)
+            {
+                for (int i = 0; i < shipSize; i++)
+                {
+                    for (int j = 0; j < opCoords.GetLength(0); j++)
+                    {
+                        if (opCoords[j, 0] == x && opCoords[j, 1] == y)
+                        {
+                            return true;
+                        }
+                    }
+                    x++;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < shipSize; i++)
+                {
+                    for (int j = 0; j < opCoords.GetLength(0); j++)
+                    {
+                        if (opCoords[i, 0] == x && opCoords[i, 1] == y)
+                        {
+                            return true;
+                        }
+                    }
+                    y++;
+                }
+            }
+            return false;
         }
     }
 }
