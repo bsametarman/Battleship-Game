@@ -94,8 +94,11 @@ namespace BattleshipGame
             
             if (isVertical)
             {
-                if(xCoord + (shipSize - 1) < map.GetLength(0) - 2)
+                // Checks if ship goes through border
+                if (xCoord + (shipSize - 1) < map.GetLength(0) - 2)
                 {
+                    bool ans = IsMatching(xCoord, yCoord, isVertical, shipSize);
+
                     if (IsMatching(xCoord, yCoord, isVertical, shipSize) == false)
                     {
                         for (int x = 0; x < shipSize; x++)
@@ -112,8 +115,11 @@ namespace BattleshipGame
             }
             else
             {
+                // Checks if ship goes through border
                 if(yCoord + (shipSize - 1) < map.GetLength(1) - 2)
                 {
+                    bool ans = IsMatching(xCoord, yCoord, isVertical, shipSize);
+
                     if (IsMatching(xCoord, yCoord, isVertical, shipSize) == false)
                     {
                         for (int x = 0; x < shipSize; x++)
@@ -168,7 +174,7 @@ namespace BattleshipGame
                 {
                     for (int j = 0; j < opCoords.GetLength(0); j++)
                     {
-                        if (opCoords[i, 0] == x && opCoords[i, 1] == y)
+                        if (opCoords[j, 0] == x && opCoords[j, 1] == y)
                         {
                             return true;
                         }
