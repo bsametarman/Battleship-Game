@@ -28,6 +28,9 @@ namespace BattleshipGame
         int opShipPartCount = 14;
         int playerShipPartCount = 14;
 
+        int playerCurrentCoordX = 0;
+        int playerCurrentCoordY = 0;
+
         private void button8_Click(object sender, EventArgs e)
         {
 
@@ -42,7 +45,7 @@ namespace BattleshipGame
                 if(opShipPartCount == 0)
                 {
                     MessageBox.Show("Game Over! You Won!!!");
-                    Application.Exit();
+                    Application.Restart();
                 }
             }
             else
@@ -51,16 +54,41 @@ namespace BattleshipGame
             } 
         }
 
+        private void btnHover_Event(object sender, EventArgs e)
+        {
+            ((Control)sender).BackColor = Color.Black;
+            playerCurrentCoordX = Convert.ToInt16(((Control)sender).Name[0].ToString());
+            playerCurrentCoordY = Convert.ToInt16(((Control)sender).Name[1].ToString());
+
+
+            //for (int i = 0; i < 4; i++)
+            //{
+            PaintMap(playerCurrentCoordX, playerCurrentCoordY, Color.Black);
+            //}
+        }
+
+        private void btnHoverLeave_Event(object sender, EventArgs e)
+        {
+            ((Control)sender).BackColor = Color.DeepSkyBlue;
+            playerCurrentCoordX = Convert.ToInt16(((Control)sender).Name[0].ToString());
+            playerCurrentCoordY = Convert.ToInt16(((Control)sender).Name[1].ToString());
+
+            PaintMap(playerCurrentCoordX, playerCurrentCoordY, Color.DeepSkyBlue);
+        }
+
         private void Form1_Load(object sender, EventArgs e)
-        {   
-            Debug.WriteLine("IMPORTANT -----> " + (opCoords.GetLength(0)));
-            
+        {    
             // Array for opponent positions, changes x coord to 15
             for (int i = 0; i < opCoords.GetLength(0); i++)
             {
                 opCoords[i, 0] = 15;
             }
-            Debug.WriteLine(opCoords[13, 0]);
+
+            // Array for player positions, changes x coord to 15
+            for (int i = 0; i < opCoords.GetLength(0); i++)
+            {
+                playerCoords[i, 0] = 15;
+            }
 
             // Drawing opponent map
             DrawMap(20, 20);
@@ -72,13 +100,7 @@ namespace BattleshipGame
             }
 
             // Drawing player map
-            DrawMap(440, 20);
-
-            // Placing player Ships
-            //for (int i = 5; i >= 2; i--)
-            //{
-            //    PlaceShips(ref playerMap, i, ref playerCoords);
-            //}
+            PlayerDrawMap(440, 20);
 
             // Op coords
             for (int i = 0; i < opCoords.GetLength(0); i++)
@@ -91,6 +113,7 @@ namespace BattleshipGame
         {
             
         }
+
         private void DrawMap(int top, int left)
         {
             // Draw Buttons (ships)
@@ -114,6 +137,45 @@ namespace BattleshipGame
                 }
                 top += 60;
                 left = 20;
+            }
+        }
+
+        private void PlayerDrawMap(int top, int left)
+        {
+            // Draw Buttons (ships)
+            for (int i = 0; i < playerMap.GetUpperBound(0); i++)
+            {
+                for (int x = 0; x < playerMap.GetUpperBound(1); x++)
+                {
+                    playerMap[i, x] = new Button();
+                    playerMap[i, x].Width = 60;
+                    playerMap[i, x].Height = 60;
+
+                    Point p = new Point(left, top);
+                    playerMap[i, x].Location = p;
+
+                    playerMap[i, x].BackColor = Color.DeepSkyBlue;
+                    playerMap[i, x].Text = $"[{i},{x}]";
+                    playerMap[i, x].Name = $"{i}{x}";
+
+                    playerMap[i, x].Click += new EventHandler(btnClick_Event);
+                    playerMap[i, x].MouseHover += new EventHandler(btnHover_Event);
+                    playerMap[i, x].MouseLeave += new EventHandler(btnHoverLeave_Event);
+
+                    left += 60;
+                    this.Controls.Add(playerMap[i, x]);
+                }
+                top += 60;
+                left = 20;
+            }
+        }
+
+        private void PaintMap(int x, int y, Color color)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                Debug.WriteLine($"[{x},{y+1}]");
+                playerMap[x, y + i].BackColor = color;
             }
         }
 
