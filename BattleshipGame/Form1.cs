@@ -7,7 +7,7 @@ namespace BattleshipGame
         public Form1()
         {
             InitializeComponent();
-            this.Size = new Size(660, 440);
+            this.Size = new Size(660, 880);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox= false;
             this.MinimizeBox= false;
@@ -16,9 +16,17 @@ namespace BattleshipGame
 
         Random rnd = new Random();
 
+        Button[,] opMap = new Button[7, 11];
+        Button[,] playerMap = new Button[7, 11];
+
         //Change here for different ship sizes
         int[,] opCoords = new int[14, 2];
+
+        //Change here for different ship sizes
+        int[,] playerCoords = new int[14, 2];
+
         int opShipPartCount = 14;
+        int playerShipPartCount = 14;
 
         private void button8_Click(object sender, EventArgs e)
         {
@@ -54,39 +62,23 @@ namespace BattleshipGame
             }
             Debug.WriteLine(opCoords[13, 0]);
 
-            Button[,] opMap = new Button[7, 11];
+            // Drawing opponent map
+            DrawMap(20, 20);
             
-            int top = 20;
-            int left = 20;
-
-            // Draw Buttons (ships)
-            for (int i = 0; i < opMap.GetUpperBound(0); i++)
-            {
-                for (int x = 0; x < opMap.GetUpperBound(1); x++)
-                {
-                    opMap[i, x] = new Button();
-                    opMap[i, x].Width = 60;
-                    opMap[i, x].Height = 60;
-
-                    Point p = new Point(left, top);
-                    opMap[i,x].Location = p;
-
-                    opMap[i, x].BackColor = Color.DeepSkyBlue;
-                    opMap[i, x].Text = $"[{i},{x}]";
-
-                    opMap[i, x].Click += new EventHandler(btnClick_Event);
-                    left += 60;
-                    this.Controls.Add(opMap[i, x]);
-                }
-                top += 60;
-                left = 20;
-            }
-
-            // Placing Ships
+            // Placing opponent ships
             for (int i = 5; i >= 2; i--)
             {
-                PlaceShips(ref opMap, i);
+                PlaceShips(ref opMap, i, ref opCoords);
             }
+
+            // Drawing player map
+            DrawMap(440, 20);
+
+            // Placing player Ships
+            //for (int i = 5; i >= 2; i--)
+            //{
+            //    PlaceShips(ref playerMap, i, ref playerCoords);
+            //}
 
             // Op coords
             for (int i = 0; i < opCoords.GetLength(0); i++)
@@ -99,6 +91,31 @@ namespace BattleshipGame
         {
             
         }
+        private void DrawMap(int top, int left)
+        {
+            // Draw Buttons (ships)
+            for (int i = 0; i < opMap.GetUpperBound(0); i++)
+            {
+                for (int x = 0; x < opMap.GetUpperBound(1); x++)
+                {
+                    opMap[i, x] = new Button();
+                    opMap[i, x].Width = 60;
+                    opMap[i, x].Height = 60;
+
+                    Point p = new Point(left, top);
+                    opMap[i, x].Location = p;
+
+                    opMap[i, x].BackColor = Color.DeepSkyBlue;
+                    opMap[i, x].Text = $"[{i},{x}]";
+
+                    opMap[i, x].Click += new EventHandler(btnClick_Event);
+                    left += 60;
+                    this.Controls.Add(opMap[i, x]);
+                }
+                top += 60;
+                left = 20;
+            }
+        }
 
         private int PickRandomCoord(out int yCoord, out bool isVertical)
         {
@@ -110,7 +127,7 @@ namespace BattleshipGame
             return xCoord;
         }
 
-        private void PlaceShips(ref Button[,] map, int shipSize)
+        private void PlaceShips(ref Button[,] map, int shipSize, ref int[,] shipCoords)
         {
             bool isVertical;
             int yCoord;
@@ -131,14 +148,14 @@ namespace BattleshipGame
                         {
                             //map[xCoord + x, yCoord].BackColor = Color.Black;
                             map[xCoord + x, yCoord].Name = "x";
-                            Add(ref opCoords, xCoord + x, yCoord);
+                            Add(ref shipCoords, xCoord + x, yCoord);
                         }
                     }
                     else
-                        PlaceShips(ref map, shipSize);
+                        PlaceShips(ref map, shipSize, ref shipCoords);
                 }
                 else
-                    PlaceShips(ref map, shipSize);
+                    PlaceShips(ref map, shipSize, ref shipCoords);
             }
             else
             {
@@ -153,14 +170,14 @@ namespace BattleshipGame
                         {
                             //map[xCoord, yCoord + x].BackColor = Color.Black;
                             map[xCoord, yCoord + x].Name = "x";
-                            Add(ref opCoords, xCoord, yCoord + x);
+                            Add(ref shipCoords, xCoord, yCoord + x);
                         }
                     }
                     else
-                        PlaceShips(ref map, shipSize);
+                        PlaceShips(ref map, shipSize, ref shipCoords);
                 }
                 else
-                    PlaceShips(ref map, shipSize);
+                    PlaceShips(ref map, shipSize, ref shipCoords);
             }
             
         }
