@@ -31,10 +31,8 @@ namespace BattleshipGame
         int playerCurrentCoordX = 0;
         int playerCurrentCoordY = 0;
 
-        private void button8_Click(object sender, EventArgs e)
-        {
+        bool PlayerMapIsVertical = false;
 
-        }
         private void btnClick_Event(object sender, EventArgs e)
         {
             if (((Control)sender).Name == "x") {
@@ -54,26 +52,36 @@ namespace BattleshipGame
             } 
         }
 
+        private void mouseRightClick_Event(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                PlayerMapIsVertical = PlayerMapIsVertical ? false : true;
+            }
+        }
+
+        private void playerButtonClick_Event(object sender, EventArgs e)
+        {
+
+        }
+
         private void btnHover_Event(object sender, EventArgs e)
         {
-            ((Control)sender).BackColor = Color.Black;
             playerCurrentCoordX = Convert.ToInt16(((Control)sender).Name[0].ToString());
             playerCurrentCoordY = Convert.ToInt16(((Control)sender).Name[1].ToString());
 
-
             //for (int i = 0; i < 4; i++)
             //{
-            PaintMap(playerCurrentCoordX, playerCurrentCoordY, Color.Black);
+            PlacePlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.Black, 5);
             //}
         }
 
         private void btnHoverLeave_Event(object sender, EventArgs e)
         {
-            ((Control)sender).BackColor = Color.DeepSkyBlue;
             playerCurrentCoordX = Convert.ToInt16(((Control)sender).Name[0].ToString());
             playerCurrentCoordY = Convert.ToInt16(((Control)sender).Name[1].ToString());
 
-            PaintMap(playerCurrentCoordX, playerCurrentCoordY, Color.DeepSkyBlue);
+            PlacePlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.DeepSkyBlue, 5);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -158,7 +166,8 @@ namespace BattleshipGame
                     playerMap[i, x].Text = $"[{i},{x}]";
                     playerMap[i, x].Name = $"{i}{x}";
 
-                    playerMap[i, x].Click += new EventHandler(btnClick_Event);
+                    playerMap[i, x].Click += new EventHandler(playerButtonClick_Event);
+                    playerMap[i, x].MouseUp += new MouseEventHandler(mouseRightClick_Event);
                     playerMap[i, x].MouseHover += new EventHandler(btnHover_Event);
                     playerMap[i, x].MouseLeave += new EventHandler(btnHoverLeave_Event);
 
@@ -170,12 +179,31 @@ namespace BattleshipGame
             }
         }
 
-        private void PaintMap(int x, int y, Color color)
+        private void PlacePlayerShips(int x, int y, Color color, int shipSize)
         {
-            for (int i = 0; i < 5; i++)
+            if (PlayerMapIsVertical)
             {
-                Debug.WriteLine($"[{x},{y+1}]");
-                playerMap[x, y + i].BackColor = color;
+                if (x + shipSize <= playerMap.GetUpperBound(0))
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Debug.WriteLine($"[{x + 1},{y}]");
+
+                        playerMap[x + i, y].BackColor = color;
+                    }
+                }
+            }
+            else
+            {
+                if (y + shipSize <= playerMap.GetUpperBound(1))
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Debug.WriteLine($"[{x},{y + 1}]");
+
+                        playerMap[x, y + i].BackColor = color;
+                    }
+                }
             }
         }
 
