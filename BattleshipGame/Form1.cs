@@ -70,7 +70,8 @@ namespace BattleshipGame
                     {
                         for (int i = 0; i < playerShipSizeToPlace; i++)
                         {
-                            playerMap[playerCurrentCoordX + i, playerCurrentCoordY].BackColor = Color.DeepSkyBlue;
+                            if(!IsMatching(playerCurrentCoordX + i, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords, false))
+                                playerMap[playerCurrentCoordX + i, playerCurrentCoordY].BackColor = Color.DeepSkyBlue;
                         }
                     }
                 }
@@ -80,7 +81,8 @@ namespace BattleshipGame
                     {
                         for (int i = 0; i < playerShipSizeToPlace; i++)
                         {
-                            playerMap[playerCurrentCoordX, playerCurrentCoordY + i].BackColor = Color.DeepSkyBlue;
+                            if (!IsMatching(playerCurrentCoordX, playerCurrentCoordY + i, playerShipSizeToPlace, ref playerCoords, false))
+                                playerMap[playerCurrentCoordX, playerCurrentCoordY + i].BackColor = Color.DeepSkyBlue;
                         }
                     }
                 }
@@ -89,7 +91,7 @@ namespace BattleshipGame
 
         private void playerButtonClick_Event(object sender, EventArgs e)
         {
-            PlacePlayerShips(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords);  
+            PlacePlayerShips(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords);
         }
 
         private void btnHover_Event(object sender, EventArgs e)
@@ -102,7 +104,7 @@ namespace BattleshipGame
 
         private void btnHoverLeave_Event(object sender, EventArgs e)
         {
-            if(!IsMatching(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords))
+            if(!IsMatching(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords, true))
                 PreviewPlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.DeepSkyBlue, playerShipSizeToPlace);
         }
 
@@ -201,26 +203,31 @@ namespace BattleshipGame
             }
         }
 
-        // Near of ships buttons are painting black <---- IMPORTANT ---->  !!!!!!!!!!!!
         private void PreviewPlayerShips(int x, int y, Color color, int shipSize)
         {
             if (PlayerMapIsVertical)
             {
                 if (x + shipSize <= playerMap.GetUpperBound(0))
                 {
-                    for (int i = 0; i < shipSize; i++)
+                    if(!IsMatching(x, y, shipSize, ref playerCoords, true))
                     {
-                        playerMap[x + i, y].BackColor = color;
-                    }
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            playerMap[x + i, y].BackColor = color;
+                        }
+                    } 
                 }
             }
             else
             {
                 if (y + shipSize <= playerMap.GetUpperBound(1))
                 {
-                    for (int i = 0; i < shipSize; i++)
+                    if (!IsMatching(x, y, shipSize, ref playerCoords, true))
                     {
-                        playerMap[x, y + i].BackColor = color;
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            playerMap[x, y + i].BackColor = color;
+                        }
                     }
                 }
             }
@@ -232,26 +239,32 @@ namespace BattleshipGame
             {
                 if (x + shipSize <= playerMap.GetUpperBound(0))
                 {
-                    for (int i = 0; i < shipSize; i++)
+                    if (!IsMatching(x, y, shipSize, ref playerCoords, true))
                     {
-                        playerMap[x + i, y].BackColor = Color.Black;
-                        playerMap[x + i, y].Enabled = false;
-                        Add(ref playerCoords, x + i, y);
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            playerMap[x + i, y].BackColor = Color.Black;
+                            playerMap[x + i, y].Enabled = false;
+                            Add(ref playerCoords, x + i, y);
+                        }
+                        playerShipSizeToPlace--;
                     }
-                    playerShipSizeToPlace--;
                 }
             }
             else
             {
                 if (y + shipSize <= playerMap.GetUpperBound(1))
                 {
-                    for (int i = 0; i < shipSize; i++)
+                    if (!IsMatching(x, y, shipSize, ref playerCoords, true))
                     {
-                        playerMap[x, y + i].BackColor = Color.Black;
-                        playerMap[x, y + i].Enabled = false;
-                        Add(ref playerCoords, x, y + i);
+                        for (int i = 0; i < shipSize; i++)
+                        {
+                            playerMap[x, y + i].BackColor = Color.Black;
+                            playerMap[x, y + i].Enabled = false;
+                            Add(ref playerCoords, x, y + i);
+                        }
+                        playerShipSizeToPlace--;
                     }
-                    playerShipSizeToPlace--;
                 }
             }
         }
@@ -280,7 +293,7 @@ namespace BattleshipGame
                 // Checks if ship goes through border
                 if (xCoord + shipSize <= opMap.GetUpperBound(0))
                 {
-                    if (IsMatching(xCoord, yCoord, shipSize, ref opCoords) == false)
+                    if (IsMatching(xCoord, yCoord, shipSize, ref opCoords, true) == false)
                     {
                         for (int x = 0; x < shipSize; x++)
                         {
@@ -300,7 +313,7 @@ namespace BattleshipGame
                 // Checks if ship goes through border
                 if(yCoord + shipSize <= opMap.GetUpperBound(1))
                 {
-                    if (IsMatching(xCoord, yCoord, shipSize, ref opCoords) == false)
+                    if (!IsMatching(xCoord, yCoord, shipSize, ref opCoords, true))
                     {
                         for (int x = 0; x < shipSize; x++)
                         {
@@ -333,9 +346,43 @@ namespace BattleshipGame
         }
 
         // Check if ships overlap
-        private bool IsMatching(int x, int y, int shipSize, ref int[,] shipCoords)
+        // gonna try optimize
+        private bool IsMatching(int x, int y, int shipSize, ref int[,] shipCoords, bool isDetailed)
         {
-            for (int i = 0; i < shipSize; i++)
+            if (isDetailed)
+            {
+                if (PlayerMapIsVertical)
+                {
+                    for (int i = 0; i < shipSize; i++)
+                    {
+                        for (int j = 0; j <= shipCoords.GetUpperBound(0); j++)
+                        {
+                            if (shipCoords[j, 0] == x && shipCoords[j, 1] == y)
+                            {
+                                return true;
+                            }
+                        }
+                        x++;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < shipSize; i++)
+                    {
+                        for (int j = 0; j < opCoords.GetLength(0); j++)
+                        {
+                            if (shipCoords[j, 0] == x && shipCoords[j, 1] == y)
+                            {
+                                return true;
+                            }
+                        }
+                        y++;
+                    }
+                }
+
+                return false;
+            }
+            else
             {
                 for (int j = 0; j <= shipCoords.GetUpperBound(0); j++)
                 {
@@ -344,10 +391,9 @@ namespace BattleshipGame
                         return true;
                     }
                 }
-                x++;
+
+                return false;
             }
-            
-            return false;
         }
     }
 }
