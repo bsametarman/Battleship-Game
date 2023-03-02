@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Drawing;
 
 namespace BattleshipGame
 {
@@ -28,17 +29,21 @@ namespace BattleshipGame
         int opShipPartCount = 14;
         int playerShipPartCount = 14;
 
+        int playerShipSizeToPlace = 5;
+
         int playerCurrentCoordX = 0;
         int playerCurrentCoordY = 0;
 
         bool PlayerMapIsVertical = false;
 
-        private void btnClick_Event(object sender, EventArgs e)
+        private void opButtonClick_Event(object sender, EventArgs e)
         {
             if (((Control)sender).Name == "x") {
                 ((Control)sender).BackColor = Color.Red;
                 ((Control)sender).Enabled= false;
+
                 opShipPartCount--;
+
                 Debug.WriteLine("Left Ship Parts: " + opShipPartCount.ToString());
                 if(opShipPartCount == 0)
                 {
@@ -57,12 +62,34 @@ namespace BattleshipGame
             if (e.Button == MouseButtons.Right)
             {
                 PlayerMapIsVertical = PlayerMapIsVertical ? false : true;
+
+                // Clear unchanged ship parts
+                if (!PlayerMapIsVertical)
+                {
+                    if (playerCurrentCoordX + playerShipSizeToPlace <= playerMap.GetUpperBound(0))
+                    {
+                        for (int i = 0; i < playerShipSizeToPlace; i++)
+                        {
+                            playerMap[playerCurrentCoordX + i, playerCurrentCoordY].BackColor = Color.DeepSkyBlue;
+                        }
+                    }
+                }
+                else
+                {
+                    if (playerCurrentCoordY + playerShipSizeToPlace <= playerMap.GetUpperBound(1))
+                    {
+                        for (int i = 0; i < playerShipSizeToPlace; i++)
+                        {
+                            playerMap[playerCurrentCoordX, playerCurrentCoordY + i].BackColor = Color.DeepSkyBlue;
+                        }
+                    }
+                }
             }
         }
 
         private void playerButtonClick_Event(object sender, EventArgs e)
         {
-
+            PlacePlayerShips(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords);  
         }
 
         private void btnHover_Event(object sender, EventArgs e)
@@ -70,18 +97,13 @@ namespace BattleshipGame
             playerCurrentCoordX = Convert.ToInt16(((Control)sender).Name[0].ToString());
             playerCurrentCoordY = Convert.ToInt16(((Control)sender).Name[1].ToString());
 
-            //for (int i = 0; i < 4; i++)
-            //{
-            PlacePlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.Black, 5);
-            //}
+            PreviewPlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.Black, playerShipSizeToPlace);
         }
 
         private void btnHoverLeave_Event(object sender, EventArgs e)
         {
-            playerCurrentCoordX = Convert.ToInt16(((Control)sender).Name[0].ToString());
-            playerCurrentCoordY = Convert.ToInt16(((Control)sender).Name[1].ToString());
-
-            PlacePlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.DeepSkyBlue, 5);
+            if(!IsMatching(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords))
+                PreviewPlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.DeepSkyBlue, playerShipSizeToPlace);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -99,22 +121,22 @@ namespace BattleshipGame
             }
 
             // Drawing opponent map
-            DrawMap(20, 20);
+            DrawOpMap(20, 20);
             
             // Placing opponent ships
             for (int i = 5; i >= 2; i--)
             {
-                PlaceShips(ref opMap, i, ref opCoords);
+                PlaceOpShips(i);
             }
 
             // Drawing player map
             PlayerDrawMap(440, 20);
 
             // Op coords
-            for (int i = 0; i < opCoords.GetLength(0); i++)
-            {
-                Debug.WriteLine($"Coord --> [{opCoords[i, 0]},{opCoords[i, 1]}]");
-            }
+            //for (int i = 0; i < opCoords.GetLength(0); i++)
+            //{
+            //    Debug.WriteLine($"Coord --> [{opCoords[i, 0]},{opCoords[i, 1]}]");
+            //}
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -122,7 +144,7 @@ namespace BattleshipGame
             
         }
 
-        private void DrawMap(int top, int left)
+        private void DrawOpMap(int top, int left)
         {
             // Draw Buttons (ships)
             for (int i = 0; i < opMap.GetUpperBound(0); i++)
@@ -139,7 +161,7 @@ namespace BattleshipGame
                     opMap[i, x].BackColor = Color.DeepSkyBlue;
                     opMap[i, x].Text = $"[{i},{x}]";
 
-                    opMap[i, x].Click += new EventHandler(btnClick_Event);
+                    opMap[i, x].Click += new EventHandler(opButtonClick_Event);
                     left += 60;
                     this.Controls.Add(opMap[i, x]);
                 }
@@ -179,16 +201,15 @@ namespace BattleshipGame
             }
         }
 
-        private void PlacePlayerShips(int x, int y, Color color, int shipSize)
+        // Near of ships buttons are painting black <---- IMPORTANT ---->  !!!!!!!!!!!!
+        private void PreviewPlayerShips(int x, int y, Color color, int shipSize)
         {
             if (PlayerMapIsVertical)
             {
                 if (x + shipSize <= playerMap.GetUpperBound(0))
                 {
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < shipSize; i++)
                     {
-                        Debug.WriteLine($"[{x + 1},{y}]");
-
                         playerMap[x + i, y].BackColor = color;
                     }
                 }
@@ -197,12 +218,40 @@ namespace BattleshipGame
             {
                 if (y + shipSize <= playerMap.GetUpperBound(1))
                 {
-                    for (int i = 0; i < 5; i++)
+                    for (int i = 0; i < shipSize; i++)
                     {
-                        Debug.WriteLine($"[{x},{y + 1}]");
-
                         playerMap[x, y + i].BackColor = color;
                     }
+                }
+            }
+        }
+
+        private void PlacePlayerShips(int x, int y, int shipSize, ref int[,] playerCoords)
+        {
+            if (PlayerMapIsVertical)
+            {
+                if (x + shipSize <= playerMap.GetUpperBound(0))
+                {
+                    for (int i = 0; i < shipSize; i++)
+                    {
+                        playerMap[x + i, y].BackColor = Color.Black;
+                        playerMap[x + i, y].Enabled = false;
+                        Add(ref playerCoords, x + i, y);
+                    }
+                    playerShipSizeToPlace--;
+                }
+            }
+            else
+            {
+                if (y + shipSize <= playerMap.GetUpperBound(1))
+                {
+                    for (int i = 0; i < shipSize; i++)
+                    {
+                        playerMap[x, y + i].BackColor = Color.Black;
+                        playerMap[x, y + i].Enabled = false;
+                        Add(ref playerCoords, x, y + i);
+                    }
+                    playerShipSizeToPlace--;
                 }
             }
         }
@@ -217,7 +266,7 @@ namespace BattleshipGame
             return xCoord;
         }
 
-        private void PlaceShips(ref Button[,] map, int shipSize, ref int[,] shipCoords)
+        private void PlaceOpShips(int shipSize)
         {
             bool isVertical;
             int yCoord;
@@ -229,45 +278,42 @@ namespace BattleshipGame
             if (isVertical)
             {
                 // Checks if ship goes through border
-                if (xCoord + (shipSize - 1) < map.GetLength(0) - 2)
+                if (xCoord + shipSize <= opMap.GetUpperBound(0))
                 {
-
-                    if (IsMatching(xCoord, yCoord, isVertical, shipSize) == false)
+                    if (IsMatching(xCoord, yCoord, shipSize, ref opCoords) == false)
                     {
                         for (int x = 0; x < shipSize; x++)
                         {
-                            //map[xCoord + x, yCoord].BackColor = Color.Black;
-                            map[xCoord + x, yCoord].Name = "x";
-                            Add(ref shipCoords, xCoord + x, yCoord);
+                            //map[xCoord + x, yCoord].BackColor = Color.Black;      //(uncomment if want to see op ships)
+                            opMap[xCoord + x, yCoord].Name = "x";
+                            Add(ref opCoords, xCoord + x, yCoord);
                         }
                     }
                     else
-                        PlaceShips(ref map, shipSize, ref shipCoords);
+                        PlaceOpShips(shipSize);
                 }
                 else
-                    PlaceShips(ref map, shipSize, ref shipCoords);
+                    PlaceOpShips(shipSize);
             }
             else
             {
                 // Checks if ship goes through border
-                if(yCoord + (shipSize - 1) < map.GetLength(1) - 2)
+                if(yCoord + shipSize <= opMap.GetUpperBound(1))
                 {
-                    bool ans = IsMatching(xCoord, yCoord, isVertical, shipSize);
-
-                    if (IsMatching(xCoord, yCoord, isVertical, shipSize) == false)
+                    if (IsMatching(xCoord, yCoord, shipSize, ref opCoords) == false)
                     {
                         for (int x = 0; x < shipSize; x++)
                         {
-                            //map[xCoord, yCoord + x].BackColor = Color.Black;
-                            map[xCoord, yCoord + x].Name = "x";
-                            Add(ref shipCoords, xCoord, yCoord + x);
+                            //map[xCoord, yCoord + x].BackColor = Color.Black;      //(uncomment if want to see op ships)
+                            opMap[xCoord, yCoord + x].Name = "x";
+                            Add(ref opCoords, xCoord, yCoord + x);
                         }
                     }
                     else
-                        PlaceShips(ref map, shipSize, ref shipCoords);
+                        PlaceOpShips(shipSize);
                 }
                 else
-                    PlaceShips(ref map, shipSize, ref shipCoords);
+                    PlaceOpShips(shipSize);
             }
             
         }
@@ -275,7 +321,7 @@ namespace BattleshipGame
         // Add Coordinates to Array
         private void Add(ref int[,] coords, int x, int y)
         {
-            for (int i = 0; i < coords.GetLength(0); i++)
+            for (int i = 0; i <= coords.GetUpperBound(0); i++)
             {
                 if (coords[i,0] == 15)
                 {
@@ -287,36 +333,20 @@ namespace BattleshipGame
         }
 
         // Check if ships overlap
-        private bool IsMatching(int x, int y, bool isVertical, int shipSize)
+        private bool IsMatching(int x, int y, int shipSize, ref int[,] shipCoords)
         {
-            if (isVertical)
+            for (int i = 0; i < shipSize; i++)
             {
-                for (int i = 0; i < shipSize; i++)
+                for (int j = 0; j <= shipCoords.GetUpperBound(0); j++)
                 {
-                    for (int j = 0; j < opCoords.GetLength(0); j++)
+                    if (shipCoords[j, 0] == x && shipCoords[j, 1] == y)
                     {
-                        if (opCoords[j, 0] == x && opCoords[j, 1] == y)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
-                    x++;
                 }
+                x++;
             }
-            else
-            {
-                for (int i = 0; i < shipSize; i++)
-                {
-                    for (int j = 0; j < opCoords.GetLength(0); j++)
-                    {
-                        if (opCoords[j, 0] == x && opCoords[j, 1] == y)
-                        {
-                            return true;
-                        }
-                    }
-                    y++;
-                }
-            }
+            
             return false;
         }
     }
