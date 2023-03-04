@@ -8,7 +8,8 @@ namespace BattleshipGame
         public Form1()
         {
             InitializeComponent();
-            this.Size = new Size(660, 880);
+            //700 880
+            this.Size = new Size(740, 880);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox= false;
             this.MinimizeBox= false;
@@ -57,7 +58,20 @@ namespace BattleshipGame
             } 
         }
 
-        private void mouseRightClick_Event(object sender, MouseEventArgs e)
+        private void PlayGame(object sender, EventArgs e)
+        {
+            if(playerShipSizeToPlace == 1)
+            {
+                ChangeButtonEnableToFalse(ref opMap, true);
+            }
+        }
+
+        private void RestartGame(object sender, EventArgs e)
+        {
+            Application.Restart();
+        }
+
+            private void mouseRightClick_Event(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -131,8 +145,27 @@ namespace BattleshipGame
                 PlaceOpShips(i);
             }
 
+            // Changing button state to false before player set the ships
+            ChangeButtonEnableToFalse(ref opMap, false);
+
             // Drawing player map
             PlayerDrawMap(440, 20);
+
+            Button playButton = new Button();
+            playButton.Height = 80;
+            playButton.Width = 80;
+            playButton.Text = "Start Game";
+            playButton.Location = new Point(630, 375);
+            playButton.Click += new EventHandler(PlayGame);
+            this.Controls.Add(playButton);
+
+            Button restartButton = new Button();
+            restartButton.Height = 80;
+            restartButton.Width = 80;
+            restartButton.Text = "Restart";
+            restartButton.Location = new Point(630, 460);
+            restartButton.Click += new EventHandler(RestartGame);
+            this.Controls.Add(restartButton);
 
             // Op coords
             //for (int i = 0; i < opCoords.GetLength(0); i++)
@@ -248,6 +281,8 @@ namespace BattleshipGame
                             Add(ref playerCoords, x + i, y);
                         }
                         playerShipSizeToPlace--;
+                        if (playerShipSizeToPlace == 1)
+                            ChangeButtonEnableToFalse(ref playerMap, false);
                     }
                 }
             }
@@ -264,8 +299,21 @@ namespace BattleshipGame
                             Add(ref playerCoords, x, y + i);
                         }
                         playerShipSizeToPlace--;
+                        if (playerShipSizeToPlace == 1)
+                            ChangeButtonEnableToFalse(ref playerMap, false);
                     }
                 }
+            }
+        }
+
+        private void ChangeButtonEnableToFalse(ref Button[,] map, bool isEnabled)
+        {
+            for (int i = 0; i < map.GetUpperBound(0); i++)
+            {
+                for (int x = 0; x < map.GetUpperBound(1); x++)
+                {
+                    map[i, x].Enabled = isEnabled;
+                } 
             }
         }
 
@@ -293,13 +341,16 @@ namespace BattleshipGame
                 // Checks if ship goes through border
                 if (xCoord + shipSize <= opMap.GetUpperBound(0))
                 {
-                    if (IsMatching(xCoord, yCoord, shipSize, ref opCoords, true) == false)
+                    if (!IsMatching(xCoord, yCoord, shipSize, ref opCoords, true))
                     {
                         for (int x = 0; x < shipSize; x++)
                         {
                             //map[xCoord + x, yCoord].BackColor = Color.Black;      //(uncomment if want to see op ships)
                             opMap[xCoord + x, yCoord].Name = "x";
                             Add(ref opCoords, xCoord + x, yCoord);
+
+                            // To see op ship coords
+                            Debug.WriteLine($"[{xCoord + x}, {yCoord}]");
                         }
                     }
                     else
@@ -320,6 +371,9 @@ namespace BattleshipGame
                             //map[xCoord, yCoord + x].BackColor = Color.Black;      //(uncomment if want to see op ships)
                             opMap[xCoord, yCoord + x].Name = "x";
                             Add(ref opCoords, xCoord, yCoord + x);
+
+                            // To see op ship coords
+                            Debug.WriteLine($"[{xCoord}, {yCoord + x}]");
                         }
                     }
                     else
@@ -355,7 +409,7 @@ namespace BattleshipGame
                 {
                     for (int i = 0; i < shipSize; i++)
                     {
-                        for (int j = 0; j <= shipCoords.GetUpperBound(0); j++)
+                        for (int j = 0; j < shipCoords.GetUpperBound(0); j++)
                         {
                             if (shipCoords[j, 0] == x && shipCoords[j, 1] == y)
                             {
@@ -384,7 +438,7 @@ namespace BattleshipGame
             }
             else
             {
-                for (int j = 0; j <= shipCoords.GetUpperBound(0); j++)
+                for (int j = 0; j < shipCoords.GetUpperBound(0); j++)
                 {
                     if (shipCoords[j, 0] == x && shipCoords[j, 1] == y)
                     {
