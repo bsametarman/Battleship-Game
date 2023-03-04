@@ -1,19 +1,25 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 
 namespace BattleshipGame
 {
+
+    // TASK MUST ABORTED
+    // MULTIPLE CLICKS SHOULD NOT BE ALLOWED TO RED BOXES
+    // OPPONENT BOX CHOOSING ALGORITHM
+
+
     public partial class Form1 : Form
     {
         public Form1()
         {
             InitializeComponent();
-            //700 880
             this.Size = new Size(740, 880);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox= false;
-            this.MinimizeBox= false;
-            this.StartPosition= FormStartPosition.CenterScreen;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.StartPosition = FormStartPosition.CenterScreen;
         }
 
         Random rnd = new Random();
@@ -36,6 +42,8 @@ namespace BattleshipGame
         int playerCurrentCoordY = 0;
 
         bool PlayerMapIsVertical = false;
+        bool gameStarted = false;
+        bool isPlayerTurn = true;
 
         private void opButtonClick_Event(object sender, EventArgs e)
         {
@@ -44,6 +52,7 @@ namespace BattleshipGame
                 ((Control)sender).Enabled= false;
 
                 opShipPartCount--;
+                isPlayerTurn = false;
 
                 Debug.WriteLine("Left Ship Parts: " + opShipPartCount.ToString());
                 if(opShipPartCount == 0)
@@ -55,23 +64,81 @@ namespace BattleshipGame
             else
             {
                 ((Control)sender).BackColor = Color.Green;
+                isPlayerTurn = false;
             } 
         }
 
-        private void PlayGame(object sender, EventArgs e)
+        private void PlayGame_Event(object sender, EventArgs e)
         {
-            if(playerShipSizeToPlace == 1)
-            {
-                ChangeButtonEnableToFalse(ref opMap, true);
-            }
+            if (playerShipSizeToPlace == 1 && gameStarted == false)
+                gameStarted = true;
+
+            // !!! Task must aborted !!!
+            Task playGameTask = new Task(new Action(PlayGame));
+            playGameTask.Start();
         }
 
-        private void RestartGame(object sender, EventArgs e)
+        private void RestartGame_Event(object sender, EventArgs e)
         {
             Application.Restart();
         }
 
-            private void mouseRightClick_Event(object sender, MouseEventArgs e)
+        private void ExitGame_Event(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void PlayGame()
+        {
+            if (gameStarted)
+            {
+                while (opShipPartCount != 0 || playerShipPartCount != 0)
+                {
+                    if (!isPlayerTurn)
+                    {
+                        //ChangeButtonEnableToFalse(ref opMap, false);
+
+                        // There is a method for that (try to use it)
+                        int x = rnd.Next(0, 6);
+                        int y = rnd.Next(0, 10);
+
+                        if (playerMap[x, y].BackColor != Color.Red && playerMap[x, y].BackColor != Color.Green)
+                        {
+                            if (IsMatching(x, y, 0, ref playerCoords, false))
+                            {
+                                playerShipPartCount--;
+                                Debug.WriteLine("Player left ship parts: " + playerShipPartCount);
+                                Debug.WriteLine($"Coord ----> [{x},{y}]");
+                                playerMap[x, y].BackColor = Color.Red;
+                                isPlayerTurn = true;
+                            }
+                            else
+                            {
+                                Debug.WriteLine("Player left ship parts: " + playerShipPartCount);
+                                Debug.WriteLine($"Coord ----> [{x},{y}]");
+                                playerMap[x, y].BackColor = Color.Green;
+                                isPlayerTurn = true;
+                            }
+                        }
+                        else
+                        {
+                            PlayGame();
+                        }
+                    }
+                    else
+                    {
+                        ChangeButtonEnableToFalse(ref opMap, true);
+                    }
+                }
+                gameStarted = false;
+            }
+
+            // !!! Task must aborted
+            MessageBox.Show("Game Over! Opponent Won!!!");
+            Application.Restart();
+        }
+
+        private void mouseRightClick_Event(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -123,7 +190,9 @@ namespace BattleshipGame
         }
 
         private void Form1_Load(object sender, EventArgs e)
-        {    
+        {
+            Control.CheckForIllegalCrossThreadCalls = false;
+
             // Array for opponent positions, changes x coord to 15
             for (int i = 0; i < opCoords.GetLength(0); i++)
             {
@@ -155,17 +224,25 @@ namespace BattleshipGame
             playButton.Height = 80;
             playButton.Width = 80;
             playButton.Text = "Start Game";
-            playButton.Location = new Point(630, 375);
-            playButton.Click += new EventHandler(PlayGame);
+            playButton.Location = new Point(630, 285);
+            playButton.Click += new EventHandler(PlayGame_Event);
             this.Controls.Add(playButton);
 
             Button restartButton = new Button();
             restartButton.Height = 80;
             restartButton.Width = 80;
             restartButton.Text = "Restart";
-            restartButton.Location = new Point(630, 460);
-            restartButton.Click += new EventHandler(RestartGame);
+            restartButton.Location = new Point(630, 370);
+            restartButton.Click += new EventHandler(RestartGame_Event);
             this.Controls.Add(restartButton);
+
+            Button exitButton = new Button();
+            exitButton.Height = 80;
+            exitButton.Width = 80;
+            exitButton.Text = "Exit";
+            exitButton.Location = new Point(630, 455);
+            exitButton.Click += new EventHandler(ExitGame_Event);
+            this.Controls.Add(exitButton);
 
             // Op coords
             //for (int i = 0; i < opCoords.GetLength(0); i++)
