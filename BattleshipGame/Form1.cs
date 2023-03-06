@@ -5,7 +5,6 @@ using System.Drawing;
 namespace BattleshipGame
 {
 
-    // TASK MUST ABORTED
     // MULTIPLE CLICKS SHOULD NOT BE ALLOWED TO RED BOXES
     // OPPONENT BOX CHOOSING ALGORITHM
 
@@ -28,10 +27,10 @@ namespace BattleshipGame
         Button[,] playerMap = new Button[7, 11];
 
         //Change here for different ship sizes
-        int[,] opCoords = new int[14, 2];
+        int[,] opCoords = new int[15, 2];
 
         //Change here for different ship sizes
-        int[,] playerCoords = new int[14, 2];
+        int[,] playerCoords = new int[15, 2];
 
         int opShipPartCount = 14;
         int playerShipPartCount = 14;
@@ -44,38 +43,64 @@ namespace BattleshipGame
         bool PlayerMapIsVertical = false;
         bool gameStarted = false;
         bool isPlayerTurn = true;
+        bool isAnyShipPartCountZero = false;
 
         private void opButtonClick_Event(object sender, EventArgs e)
         {
-            if (((Control)sender).Name == "x") {
-                ((Control)sender).BackColor = Color.Red;
-                ((Control)sender).Enabled= false;
-
-                opShipPartCount--;
-                isPlayerTurn = false;
-
-                Debug.WriteLine("Left Ship Parts: " + opShipPartCount.ToString());
-                if(opShipPartCount == 0)
+            if(((Control)sender).BackColor != Color.Red && ((Control)sender).BackColor != Color.Green)
+            {
+                if (((Control)sender).Name == "x")
                 {
-                    MessageBox.Show("Game Over! You Won!!!");
-                    Application.Restart();
+                    ((Control)sender).BackColor = Color.Red;
+                    ((Control)sender).Enabled = false;
+
+                    opShipPartCount--;
+                    isPlayerTurn = false;
+
+                    Debug.WriteLine("Left Ship Parts: " + opShipPartCount.ToString());
+                    if (opShipPartCount == 0)
+                    {
+                        MessageBox.Show("Game Over! You Won!!!");
+                        Application.Restart();
+                    }
+                }
+                else
+                {
+                    ((Control)sender).BackColor = Color.Green;
+                    ((Control)sender).Enabled = false;
+                    isPlayerTurn = false;
                 }
             }
-            else
-            {
-                ((Control)sender).BackColor = Color.Green;
-                isPlayerTurn = false;
-            } 
         }
 
         private void PlayGame_Event(object sender, EventArgs e)
         {
+            if(sender != null)
+                ((Control)sender).Enabled = false;
+
             if (playerShipSizeToPlace == 1 && gameStarted == false)
                 gameStarted = true;
 
-            // !!! Task must aborted !!!
-            Task playGameTask = new Task(new Action(PlayGame));
-            playGameTask.Start();
+
+            var taskController = new CancellationTokenSource();
+            var token = taskController.Token;
+            Task playGameTask = new Task(new Action(PlayGame), token);
+
+            if (!isAnyShipPartCountZero)
+            {
+                playGameTask.Start();
+            }
+            else
+            {
+                taskController.Cancel();
+                taskController.Dispose();
+            }
+
+            if (playerShipPartCount == 0)
+            {
+                MessageBox.Show("Game Over! Opponent Won!!!");
+                Application.Restart();
+            }
         }
 
         private void RestartGame_Event(object sender, EventArgs e)
@@ -92,19 +117,18 @@ namespace BattleshipGame
         {
             if (gameStarted)
             {
-                while (opShipPartCount != 0 || playerShipPartCount != 0)
+                while (opShipPartCount != 0 && playerShipPartCount != 0)
                 {
                     if (!isPlayerTurn)
                     {
                         //ChangeButtonEnableToFalse(ref opMap, false);
 
-                        // There is a method for that (try to use it)
                         int x = rnd.Next(0, 6);
                         int y = rnd.Next(0, 10);
 
                         if (playerMap[x, y].BackColor != Color.Red && playerMap[x, y].BackColor != Color.Green)
                         {
-                            if (IsMatching(x, y, 0, ref playerCoords, false))
+                            if (IsMatching(x, y, 0, ref playerCoords, false, false))
                             {
                                 playerShipPartCount--;
                                 Debug.WriteLine("Player left ship parts: " + playerShipPartCount);
@@ -131,11 +155,10 @@ namespace BattleshipGame
                     }
                 }
                 gameStarted = false;
+                isAnyShipPartCountZero = true;
             }
 
-            // !!! Task must aborted
-            MessageBox.Show("Game Over! Opponent Won!!!");
-            Application.Restart();
+            PlayGame_Event(null, null);
         }
 
         private void mouseRightClick_Event(object sender, MouseEventArgs e)
@@ -151,7 +174,7 @@ namespace BattleshipGame
                     {
                         for (int i = 0; i < playerShipSizeToPlace; i++)
                         {
-                            if(!IsMatching(playerCurrentCoordX + i, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords, false))
+                            if(!IsMatching(playerCurrentCoordX + i, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords, false, PlayerMapIsVertical))
                                 playerMap[playerCurrentCoordX + i, playerCurrentCoordY].BackColor = Color.DeepSkyBlue;
                         }
                     }
@@ -162,7 +185,7 @@ namespace BattleshipGame
                     {
                         for (int i = 0; i < playerShipSizeToPlace; i++)
                         {
-                            if (!IsMatching(playerCurrentCoordX, playerCurrentCoordY + i, playerShipSizeToPlace, ref playerCoords, false))
+                            if (!IsMatching(playerCurrentCoordX, playerCurrentCoordY + i, playerShipSizeToPlace, ref playerCoords, false, PlayerMapIsVertical))
                                 playerMap[playerCurrentCoordX, playerCurrentCoordY + i].BackColor = Color.DeepSkyBlue;
                         }
                     }
@@ -185,7 +208,7 @@ namespace BattleshipGame
 
         private void btnHoverLeave_Event(object sender, EventArgs e)
         {
-            if(!IsMatching(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords, true))
+            if(!IsMatching(playerCurrentCoordX, playerCurrentCoordY, playerShipSizeToPlace, ref playerCoords, true, PlayerMapIsVertical))
                 PreviewPlayerShips(playerCurrentCoordX, playerCurrentCoordY, Color.DeepSkyBlue, playerShipSizeToPlace);
         }
 
@@ -319,7 +342,7 @@ namespace BattleshipGame
             {
                 if (x + shipSize <= playerMap.GetUpperBound(0))
                 {
-                    if(!IsMatching(x, y, shipSize, ref playerCoords, true))
+                    if(!IsMatching(x, y, shipSize, ref playerCoords, true, PlayerMapIsVertical))
                     {
                         for (int i = 0; i < shipSize; i++)
                         {
@@ -332,7 +355,7 @@ namespace BattleshipGame
             {
                 if (y + shipSize <= playerMap.GetUpperBound(1))
                 {
-                    if (!IsMatching(x, y, shipSize, ref playerCoords, true))
+                    if (!IsMatching(x, y, shipSize, ref playerCoords, true, PlayerMapIsVertical))
                     {
                         for (int i = 0; i < shipSize; i++)
                         {
@@ -349,7 +372,7 @@ namespace BattleshipGame
             {
                 if (x + shipSize <= playerMap.GetUpperBound(0))
                 {
-                    if (!IsMatching(x, y, shipSize, ref playerCoords, true))
+                    if (!IsMatching(x, y, shipSize, ref playerCoords, true, PlayerMapIsVertical))
                     {
                         for (int i = 0; i < shipSize; i++)
                         {
@@ -367,7 +390,7 @@ namespace BattleshipGame
             {
                 if (y + shipSize <= playerMap.GetUpperBound(1))
                 {
-                    if (!IsMatching(x, y, shipSize, ref playerCoords, true))
+                    if (!IsMatching(x, y, shipSize, ref playerCoords, true, PlayerMapIsVertical))
                     {
                         for (int i = 0; i < shipSize; i++)
                         {
@@ -418,7 +441,7 @@ namespace BattleshipGame
                 // Checks if ship goes through border
                 if (xCoord + shipSize <= opMap.GetUpperBound(0))
                 {
-                    if (!IsMatching(xCoord, yCoord, shipSize, ref opCoords, true))
+                    if (!IsMatching(xCoord, yCoord, shipSize, ref opCoords, true, isVertical))
                     {
                         for (int x = 0; x < shipSize; x++)
                         {
@@ -441,7 +464,7 @@ namespace BattleshipGame
                 // Checks if ship goes through border
                 if(yCoord + shipSize <= opMap.GetUpperBound(1))
                 {
-                    if (!IsMatching(xCoord, yCoord, shipSize, ref opCoords, true))
+                    if (!IsMatching(xCoord, yCoord, shipSize, ref opCoords, true, isVertical))
                     {
                         for (int x = 0; x < shipSize; x++)
                         {
@@ -478,11 +501,11 @@ namespace BattleshipGame
 
         // Check if ships overlap
         // gonna try optimize
-        private bool IsMatching(int x, int y, int shipSize, ref int[,] shipCoords, bool isDetailed)
+        private bool IsMatching(int x, int y, int shipSize, ref int[,] shipCoords, bool isDetailed, bool isVertical)
         {
             if (isDetailed)
             {
-                if (PlayerMapIsVertical)
+                if (isVertical)
                 {
                     for (int i = 0; i < shipSize; i++)
                     {
@@ -500,7 +523,7 @@ namespace BattleshipGame
                 {
                     for (int i = 0; i < shipSize; i++)
                     {
-                        for (int j = 0; j < opCoords.GetLength(0); j++)
+                        for (int j = 0; j < shipCoords.GetLength(0); j++)
                         {
                             if (shipCoords[j, 0] == x && shipCoords[j, 1] == y)
                             {
@@ -515,9 +538,9 @@ namespace BattleshipGame
             }
             else
             {
-                for (int j = 0; j < shipCoords.GetUpperBound(0); j++)
+                for (int i = 0; i < shipCoords.GetUpperBound(0); i++)
                 {
-                    if (shipCoords[j, 0] == x && shipCoords[j, 1] == y)
+                    if (shipCoords[i, 0] == x && shipCoords[i, 1] == y)
                     {
                         return true;
                     }
