@@ -45,6 +45,17 @@ namespace BattleshipGame
         bool isPlayerTurn = true;
         bool isAnyShipPartCountZero = false;
 
+        // For opponent coord choosing
+        int x = -1;
+        int y = -1;
+
+        int xCoordHolder = -1;
+        int yCoordHolder = -1;
+
+        bool opCoordChooseIsVertical = true;
+        bool hitRed = false;
+        int greenCount = 0;
+
         private void opButtonClick_Event(object sender, EventArgs e)
         {
             if(((Control)sender).BackColor != Color.Red && ((Control)sender).BackColor != Color.Green)
@@ -122,18 +133,71 @@ namespace BattleshipGame
                     if (!isPlayerTurn)
                     {
                         //ChangeButtonEnableToFalse(ref opMap, false);
-
-                        int x = rnd.Next(0, 6);
-                        int y = rnd.Next(0, 10);
+                        
+                        if (xCoordHolder == -1 && yCoordHolder == -1)
+                        {
+                            x = rnd.Next(0, 6);
+                            y = rnd.Next(0, 10);
+                            xCoordHolder = x;
+                            yCoordHolder = y;
+                        }
+                        else
+                        {
+                            if (opCoordChooseIsVertical)
+                            {
+                                if (x + 1 < opMap.GetUpperBound(0) && greenCount % 2 == 0)
+                                {
+                                    x++;
+                                }
+                                else
+                                {
+                                    if (xCoordHolder - 1 > 0)
+                                    {
+                                        if (x > xCoordHolder)
+                                            x = xCoordHolder - 1;
+                                        else
+                                            x--;
+                                    }
+                                    else
+                                    {
+                                        opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                                    }
+                                        
+                                }
+                            }
+                            else
+                            {
+                                if (y + 1 < opMap.GetUpperBound(1) && greenCount % 2 == 0)
+                                {
+                                    y++;
+                                }
+                                else
+                                {
+                                    if (yCoordHolder - 1 > 0)
+                                    {
+                                        if (y > yCoordHolder)
+                                            y = yCoordHolder - 1;
+                                        else
+                                            y--;
+                                    }
+                                    else
+                                    {
+                                        opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                                    }
+                                }
+                            }
+                        }
 
                         if (playerMap[x, y].BackColor != Color.Red && playerMap[x, y].BackColor != Color.Green)
                         {
                             if (IsMatching(x, y, 0, ref playerCoords, false, false))
                             {
                                 playerShipPartCount--;
+
                                 Debug.WriteLine("Player left ship parts: " + playerShipPartCount);
                                 Debug.WriteLine($"Coord ----> [{x},{y}]");
                                 playerMap[x, y].BackColor = Color.Red;
+                                hitRed = true;
                                 isPlayerTurn = true;
                             }
                             else
@@ -142,6 +206,26 @@ namespace BattleshipGame
                                 Debug.WriteLine($"Coord ----> [{x},{y}]");
                                 playerMap[x, y].BackColor = Color.Green;
                                 isPlayerTurn = true;
+                                
+                                if(hitRed)
+                                    greenCount++;
+                                else
+                                {
+                                    xCoordHolder = -1;
+                                    yCoordHolder = -1;
+                                }
+
+                                if(greenCount == 2)
+                                {
+                                    opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                                }
+                                if (greenCount == 4)
+                                {
+                                    greenCount = 0;
+                                    hitRed = false;
+                                    xCoordHolder = -1;
+                                    yCoordHolder = -1;
+                                }
                             }
                         }
                         else
