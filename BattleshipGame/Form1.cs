@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 
 namespace BattleshipGame
 {
@@ -54,6 +55,7 @@ namespace BattleshipGame
 
         bool opCoordChooseIsVertical = true;
         bool hitRed = false;
+        bool hitException = false;
         int greenCount = 0;
 
         private void opButtonClick_Event(object sender, EventArgs e)
@@ -89,7 +91,7 @@ namespace BattleshipGame
             if(sender != null)
                 ((Control)sender).Enabled = false;
 
-            if (playerShipSizeToPlace == 1 && gameStarted == false)
+            if (playerShipSizeToPlace == 4 && gameStarted == false)
                 gameStarted = true;
 
 
@@ -145,46 +147,11 @@ namespace BattleshipGame
                         {
                             if (opCoordChooseIsVertical)
                             {
-                                if (x + 1 < opMap.GetUpperBound(0) && greenCount % 2 == 0)
-                                {
-                                    x++;
-                                }
-                                else
-                                {
-                                    if (xCoordHolder - 1 > 0)
-                                    {
-                                        if (x > xCoordHolder)
-                                            x = xCoordHolder - 1;
-                                        else
-                                            x--;
-                                    }
-                                    else
-                                    {
-                                        opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
-                                    }
-                                        
-                                }
+                                UpAndDownCoordChanging();
                             }
                             else
                             {
-                                if (y + 1 < opMap.GetUpperBound(1) && greenCount % 2 == 0)
-                                {
-                                    y++;
-                                }
-                                else
-                                {
-                                    if (yCoordHolder - 1 > 0)
-                                    {
-                                        if (y > yCoordHolder)
-                                            y = yCoordHolder - 1;
-                                        else
-                                            y--;
-                                    }
-                                    else
-                                    {
-                                        opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
-                                    }
-                                }
+                                RightAndLeftCoordChanging();
                             }
                         }
 
@@ -199,6 +166,12 @@ namespace BattleshipGame
                                 playerMap[x, y].BackColor = Color.Red;
                                 hitRed = true;
                                 isPlayerTurn = true;
+
+                                if(greenCount == 3)
+                                {
+                                    xCoordHolder = x;
+                                    yCoordHolder = y;
+                                }
                             }
                             else
                             {
@@ -206,10 +179,14 @@ namespace BattleshipGame
                                 Debug.WriteLine($"Coord ----> [{x},{y}]");
                                 playerMap[x, y].BackColor = Color.Green;
                                 isPlayerTurn = true;
-                                
-                                if(hitRed)
+
+                                if (hitRed && hitException == false)
+                                {
                                     greenCount++;
-                                else
+                                    //x = xCoordHolder;
+                                    //y = yCoordHolder;
+                                }
+                                if(!hitRed)
                                 {
                                     xCoordHolder = -1;
                                     yCoordHolder = -1;
@@ -218,18 +195,62 @@ namespace BattleshipGame
                                 if(greenCount == 2)
                                 {
                                     opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                                    x = xCoordHolder;
+                                    y = yCoordHolder;
                                 }
-                                if (greenCount == 4)
+
+                                hitException = false;
+                            }
+                        }
+                        else if (playerMap[x, y].BackColor == Color.Red)
+                        {
+                            y++;
+
+                            if (IsMatching(x, y, 0, ref playerCoords, false, false))
+                            {
+                                playerShipPartCount--;
+                                playerMap[x, y].BackColor = Color.Red;
+                                hitRed = true;
+                                isPlayerTurn = true;
+
+                                if (greenCount == 3)
                                 {
-                                    greenCount = 0;
-                                    hitRed = false;
+                                    xCoordHolder = x;
+                                    yCoordHolder = y;
+                                }
+                            }
+                            else
+                            {
+                                playerMap[x, y].BackColor = Color.Green;
+                                isPlayerTurn = true;
+
+                                if (hitRed && hitException == false)
+                                {
+                                    greenCount++;
+                                    //x = xCoordHolder;
+                                    //y = yCoordHolder;
+                                }
+                                if (!hitRed)
+                                {
                                     xCoordHolder = -1;
                                     yCoordHolder = -1;
                                 }
+
+                                if (greenCount == 2)
+                                {
+                                    opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                                    x = xCoordHolder;
+                                    y = yCoordHolder;
+                                }
+
+                                hitException = false;
+                                PlayGame();
                             }
                         }
                         else
                         {
+                            xCoordHolder = -1;
+                            yCoordHolder = -1;
                             PlayGame();
                         }
                     }
@@ -243,6 +264,100 @@ namespace BattleshipGame
             }
 
             PlayGame_Event(null, null);
+        }
+
+        private void UpAndDownCoordChanging()
+        {
+            if (x + 1 < playerMap.GetUpperBound(0) && greenCount % 2 == 0 && playerMap[x + 1, y].BackColor != Color.Green && playerMap[x + 1, y].BackColor != Color.Red)
+            {
+                x++;
+            }
+            else
+            {
+                //if (x + 1 > playerMap.GetUpperBound(0) || playerMap[x + 1, y].BackColor == Color.Green || playerMap[x + 1, y].BackColor == Color.Red)
+                //    greenCount++;
+                if (x + 1 > playerMap.GetUpperBound(0) && hitRed)
+                {
+                    greenCount++;
+                    hitException = true;
+                }
+
+                if (x + 1 < playerMap.GetUpperBound(0) && playerMap[x + 1, y].BackColor == Color.Green && playerMap[x + 1, y].BackColor != Color.DeepSkyBlue && hitRed)
+                {
+                    greenCount++;
+                    hitException = true;
+                }
+
+                if (xCoordHolder - 1 >= 0 && playerMap[xCoordHolder - 1, y].BackColor != Color.Red && playerMap[xCoordHolder - 1, y].BackColor != Color.Green)
+                {
+                    if (x > xCoordHolder)
+                    {
+                        x = xCoordHolder - 1;
+                    }
+                    else if (x > 0)
+                        x--;
+                }
+                else
+                {
+                    //if (x + 1 > playerMap.GetUpperBound(0))
+                    //    greenCount++;
+
+                    //if (playerMap[x + 1, y].BackColor == Color.Green)
+                    //    greenCount++;
+
+                    opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                    x = xCoordHolder;
+
+                    if (hitException)
+                        greenCount++;
+
+                    UpAndDownCoordChanging();
+
+                }
+            }
+        }
+
+        private void RightAndLeftCoordChanging()
+        {
+            if (y + 1 < playerMap.GetUpperBound(1) && greenCount % 2 == 0 && playerMap[x, y + 1].BackColor != Color.Green && playerMap[x, y + 1].BackColor != Color.Red)
+            {
+                y++;
+            }
+            else
+            {
+                //if (y + 1 > playerMap.GetUpperBound(1) || playerMap[x, y + 1].BackColor == Color.Green || playerMap[x, y + 1].BackColor == Color.Red)
+                //    greenCount++;
+                if (y + 1 > playerMap.GetUpperBound(1) && hitRed)
+                {
+                    greenCount++;
+                    hitException = true;
+                }
+
+                if (y + 1 < playerMap.GetUpperBound(1) && playerMap[x, y + 1].BackColor == Color.Green && playerMap[x, y + 1].BackColor != Color.DeepSkyBlue && hitRed)
+                {
+                    greenCount++;
+                    hitException = true;
+                }
+
+                if (yCoordHolder - 1 >= 0 && playerMap[x, yCoordHolder - 1].BackColor != Color.Green && playerMap[x, yCoordHolder - 1].BackColor != Color.Red)
+                {
+                    if (y > yCoordHolder)
+                    {
+                        y = yCoordHolder - 1;
+                    }
+                    else if (y > 0)
+                        y--;
+                }
+                else
+                {
+                    opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                    greenCount = 0;
+                    hitRed = false;
+                    xCoordHolder = -1;
+                    yCoordHolder = -1;
+                    PlayGame();
+                }
+            }
         }
 
         private void mouseRightClick_Event(object sender, MouseEventArgs e)
@@ -316,7 +431,7 @@ namespace BattleshipGame
             DrawOpMap(20, 20);
             
             // Placing opponent ships
-            for (int i = 5; i >= 2; i--)
+            for (int i = 5; i > 4; i--)
             {
                 PlaceOpShips(i);
             }
@@ -465,7 +580,7 @@ namespace BattleshipGame
                             Add(ref playerCoords, x + i, y);
                         }
                         playerShipSizeToPlace--;
-                        if (playerShipSizeToPlace == 1)
+                        if (playerShipSizeToPlace == 4) /// here !!!!!!!!!!!!!!!!!!!!
                             ChangeButtonEnableToFalse(ref playerMap, false);
                     }
                 }
@@ -483,7 +598,7 @@ namespace BattleshipGame
                             Add(ref playerCoords, x, y + i);
                         }
                         playerShipSizeToPlace--;
-                        if (playerShipSizeToPlace == 1)
+                        if (playerShipSizeToPlace == 4) //// here !!!!!!!!!!!!!!!!!!!!
                             ChangeButtonEnableToFalse(ref playerMap, false);
                     }
                 }
