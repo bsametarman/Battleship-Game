@@ -166,8 +166,14 @@ namespace BattleshipGame
                                 playerMap[x, y].BackColor = Color.Red;
                                 hitRed = true;
                                 isPlayerTurn = true;
+                                hitException = false;
 
-                                if(greenCount == 3)
+                                //if (greenCount == 2 && hitException)
+                                //{
+                                //    hitException = false;                                
+                                //}
+
+                                if (greenCount == 3)
                                 {
                                     xCoordHolder = x;
                                     yCoordHolder = y;
@@ -180,7 +186,7 @@ namespace BattleshipGame
                                 playerMap[x, y].BackColor = Color.Green;
                                 isPlayerTurn = true;
 
-                                if (hitRed && hitException == false)
+                                if ((hitRed && hitException == false) || greenCount == 1)
                                 {
                                     greenCount++;
                                     //x = xCoordHolder;
@@ -200,6 +206,16 @@ namespace BattleshipGame
                                 }
 
                                 hitException = false;
+
+                                if (greenCount == 3 && hitException == true)
+                                {
+                                    opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
+                                    greenCount = 0;
+                                    hitRed = false;
+                                    xCoordHolder = -1;
+                                    yCoordHolder = -1;
+                                    PlayGame();
+                                }
                             }
                         }
                         else if (playerMap[x, y].BackColor == Color.Red)
@@ -212,6 +228,7 @@ namespace BattleshipGame
                                 playerMap[x, y].BackColor = Color.Red;
                                 hitRed = true;
                                 isPlayerTurn = true;
+                                hitException = false;
 
                                 if (greenCount == 3)
                                 {
@@ -224,7 +241,7 @@ namespace BattleshipGame
                                 playerMap[x, y].BackColor = Color.Green;
                                 isPlayerTurn = true;
 
-                                if (hitRed && hitException == false)
+                                if ((hitRed && hitException == false) || greenCount == 1)
                                 {
                                     greenCount++;
                                     //x = xCoordHolder;
@@ -276,7 +293,7 @@ namespace BattleshipGame
             {
                 //if (x + 1 > playerMap.GetUpperBound(0) || playerMap[x + 1, y].BackColor == Color.Green || playerMap[x + 1, y].BackColor == Color.Red)
                 //    greenCount++;
-                if (x + 1 > playerMap.GetUpperBound(0) && hitRed)
+                if (x + 1 >= playerMap.GetUpperBound(0) && hitRed && playerMap[x, y].BackColor != Color.Green)
                 {
                     greenCount++;
                     hitException = true;
@@ -293,9 +310,15 @@ namespace BattleshipGame
                     if (x > xCoordHolder)
                     {
                         x = xCoordHolder - 1;
+                        if(IsMatching(x, y, 0, ref opCoords, false, false))
+                            xCoordHolder = x;
                     }
                     else if (x > 0)
+                    {
                         x--;
+                        if (IsMatching(x, y, 0, ref opCoords, false, false))
+                            xCoordHolder = x;
+                    }
                 }
                 else
                 {
@@ -307,11 +330,14 @@ namespace BattleshipGame
 
                     opCoordChooseIsVertical = opCoordChooseIsVertical ? false : true;
                     x = xCoordHolder;
+                    //y++;
 
-                    if (hitException)
-                        greenCount++;
+                    
+                    greenCount++;
 
-                    UpAndDownCoordChanging();
+                    hitException = false;
+                    PlayGame();
+                   // UpAndDownCoordChanging();
 
                 }
             }
@@ -327,7 +353,7 @@ namespace BattleshipGame
             {
                 //if (y + 1 > playerMap.GetUpperBound(1) || playerMap[x, y + 1].BackColor == Color.Green || playerMap[x, y + 1].BackColor == Color.Red)
                 //    greenCount++;
-                if (y + 1 > playerMap.GetUpperBound(1) && hitRed)
+                if (y + 1 >= playerMap.GetUpperBound(1) && hitRed && playerMap[x, y].BackColor != Color.Green)
                 {
                     greenCount++;
                     hitException = true;
