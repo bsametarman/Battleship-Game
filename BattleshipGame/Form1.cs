@@ -108,6 +108,14 @@ namespace BattleshipGame
             exitButton.Location = new Point(630, 455);
             exitButton.Click += new EventHandler(ExitGame_Event);
             this.Controls.Add(exitButton);
+
+            Button helpButton = new Button();
+            helpButton.Height = 80;
+            helpButton.Width = 80;
+            helpButton.Text = "Help";
+            helpButton.Location = new Point(630, 540);
+            helpButton.Click += new EventHandler(Help_Event);
+            this.Controls.Add(helpButton);
         }
 
         private void PlayGame_Event(object sender, EventArgs e)
@@ -154,6 +162,16 @@ namespace BattleshipGame
         private void ExitGame_Event(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void Help_Event(object sender, EventArgs e)
+        {
+            MessageBox.Show("Welcome to the BattleShips game !!!\n\n" +
+                            "Place your ships and fight with your opponent.\n\n" +
+                            "Left Click: Places ship and shots.\n" +
+                            "Right Click: Changes position of ship. (Vertical or horizontal)\n\n" +
+                            "Author: bsametarman\n" +
+                            "Github: https://github.com/bsametarman");
         }
 
         private void playerButtonClick_Event(object sender, EventArgs e)
